@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+​
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Cliente</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://bader.es/descargas/img/icono.ico" />
+    <!--<link rel="icon" type="image/png" href="https://bader.es/descargas/favicon.png" />-->
+    <!-- Inclua o CSS do Bootstrap -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body style="background-color:#003841;">
+
+    <!--<div class="container mt-5 bg-light"  style="padding:10px;" style="background-color:#003841;">-->
+
+    <div class="col-12">
+        <img src="https://bader.es/descargas/img/bader_logotipo_verde_claro_rgb.png" class="img-fluid" alt="logo Bader">
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-8 col-sm-12">
+                <div style="border: 10px solid; padding:20px; border-color: #70D44B">
+                    <div class="card bg-light rounded-0 border-0" style="background-color:#003841 !important;">
+                        <h2 class="text-center" style="color: #70D44B;">Buscar Cliente</h2>
+                        &nbsp;&nbsp;
+                        <form action="/search" method="post" class="row g-3 form-horizontal text-secondary">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="col-12">
+                                <label for="query" class="form-label" style="color: #70D44B;">NIF</label>
+                                <input type="text" class="form-control" name="query" id="query"
+                                    placeholder="Introduzca el NIF">
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="submit" class="btn btn-primary btn-lg bg-success text-white"
+                                    style="border-color: #70D44B !important; background-color:#70D44B !important;;color:#003841 !important;font-weight: bold;">Consultar</button>
+                            </div>
+
+                        </form>
+                        <div class="card-body">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    &nbsp;&nbsp;
+
+
+
+    <!--</div>-->
+
+    &nbsp;&nbsp;
+
+    <div class="col-12 text-center text-white" style="color:#70D44B !important;">
+        Bader Europe Group S.L. 2026
+    </div>
+    <br>
+
+    <!-- Inclua o JS do Bootstrap e suas dependências -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

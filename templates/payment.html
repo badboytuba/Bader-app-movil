@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago</title>
+  <!-- Inclua o CSS do Bootstrap -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="shortcut icon" type="image/x-icon" href="https://bader.es/descargas/img/icono.ico" />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+
+<body style="background-color:#003841;">
+
+  <div class="container mt-5 bg-light" style="padding:20px;">
+
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-8 col-sm-12" style="padding-top:20px; padding-down:20px;">
+        <!--<div style="border: 10px solid; padding:20px; border-color: #B9BE10">-->
+        <div class="card bg-light rounded-0 border-0">
+
+          <h2>Detalles del Pedido para Efectuar Pago</h2>
+          &nbsp;
+          <div class="bg-secondary text-white" style="padding:10px">
+            <ul>
+              <h3>{{ presupuesto_data.partner_id[1] }}</h3>
+              <!--<li>Nome do Cliente: {{ presupuesto_data.partner_id[1] }}</li>-->
+              <br>
+              <h4>{{ presupuesto_data.name }}</h4>
+              <!--<li>Número da Ordem: {{ presupuesto_data.name }}</li>-->
+              <br>
+              <h4>Valor Total: {{ presupuesto_data.amount_total }} €</h4>
+
+            </ul>
+          </div>
+          <!-- Botões para disparar modais -->
+          <div class="col-12 text-center mt-3">
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalNumerario"
+              style="background-color:#70D44B !important;color:#003841 !important;">Cash</button>
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCartao"
+              style="background-color:#70D44B !important;color:#003841 !important;">Tarjeta</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+  <br>
+  <div class="col-12 text-center text-white" style="color:#70D44B !important;">
+    Bader Europe Group S.L. 2025
+  </div>
+  <br>
+
+
+
+
+
+  <!-- Modal Numerário -->
+  <div class="modal fade" id="modalNumerario" tabindex="-1" aria-labelledby="modalNumerarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="padding: 20px;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNumerarioLabel">Confirmación de Pago</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          ¿Confirma el pago en metálico?
+        </div>
+        <!-- Input para notas -->
+        <div class="form-group">
+          <label for="paymentNotes1">Notas del Pago:</label>
+          <textarea class="form-control" id="paymentNotes1" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>-->
+          <button type="button" class="btn btn-primary" id="confirmNumerario"
+            data-presupuesto-id="{{ presupuesto_data.id }}">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cartão -->
+  <div class="modal fade" id="modalCartao" tabindex="-1" aria-labelledby="modalCartaoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content" style="padding: 20px;">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalCartaoLabel">Confirmación de Pago</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          ¿Confirma el pago con tarjeta?
+        </div>
+        <!-- Input para notas -->
+        <div class="form-group">
+          <label for="paymentNotes">Notas del Pago:</label>
+          <textarea class="form-control" id="paymentNotes" rows="3"></textarea>
+        </div>
+        <div class="modal-footer">
+          <!--<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>-->
+          <button type="button" class="btn btn-primary" id="confirmCartao"
+            data-presupuesto-id="{{ presupuesto_data.id }}">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inclua o JS do Bootstrap e suas dependências -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      var csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+      function sendEmailAndRedirect(presupuestoId, note, paymentType) {
+        $.ajax({
+          type: 'POST',
+          url: `/send_email/${presupuestoId}`,
+          data: { note: note, paymentType: paymentType },
+          beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+          },
+          success: function (data) {
+            // Email enviado e notas salvas, agora redireciona para a homepage
+            window.location.href = "/";
+          },
+          error: function (error) {
+            // Handle any errors here
+            alert('Erro ao enviar o e-mail ou salvar as notas.');
+            console.log(error);
+          }
+        });
+      }
+
+      // Evento de clique para o botão de confirmação de pagamento em numerário
+      $('#confirmNumerario').click(function () {
+        var presupuestoId = $(this).data('presupuesto-id');
+        var note = $('#paymentNotes1').val();
+
+        sendEmailAndRedirect(presupuestoId, note, 'cash');
+      });
+
+      // Evento de clique para o botão de confirmação de pagamento com cartão
+      $('#confirmCartao').click(function () {
+        var presupuestoId = $(this).data('presupuesto-id');
+        var note = $('#paymentNotes').val();
+
+        sendEmailAndRedirect(presupuestoId, note, 'tarjeta');
+      });
+    });
+  </script>
+
+
+
+
+</body>
+
+</html>

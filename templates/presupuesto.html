@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Presupuesto</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://bader.es/descargas/img/icono.ico" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background-color:#003841;">
+
+    <div class="container mt-5 bg-light" style="padding:10px;">
+
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8 col-sm-12" style="padding-top:20px; padding-down:20px;">
+                    <!--<div style="border: 10px solid; padding:20px; border-color: #B9BE10">-->
+                    <div class="card bg-light rounded-0 border-0">
+
+                        <h2>Presupuesto</h2>
+                        &nbsp;
+                        <div class="text-white text-center" style="background-color:#CAC7C6;padding:10px">
+                            <!--<ul>-->
+                            <h3>{{ presupuesto_data.partner_id[1] }}</h3>
+                            <!--<li>Nome do Cliente: {{ presupuesto_data.partner_id[1] }}</li>-->
+                            <br>
+                            <h4
+                                style="color: {{ '#28A745' if presupuesto_data.fiscal_position_id[0] == 4 else '#CD2400' }};">
+                                {{ presupuesto_data.name }}
+
+                            </h4>
+                            <!--</ul>-->
+                        </div>
+                        &nbsp;
+                        <h3>Productos Añadidos:</h3>
+                        &nbsp;
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr class="bg-white">
+                                    <th>Producto</th>
+                                    <th>Qts</th>
+                                    <th>Total</th>
+                                    <th>Acción</th> <!-- Nova coluna de ações -->
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for line in sale_order_lines %}
+                                <tr>
+                                    <td>{{ line.name }}</td>
+                                    <td>{{ line.product_uom_qty }}</td>
+                                    <td>{{ line.price_total }}€</td>
+                                    <td style="text-align: center;">
+                                        <form method="POST" action="{{ url_for('delete_product', line_id=line.id) }}"
+                                            style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-link text-danger p-0"
+                                                onclick="return confirm('¿Eliminar este producto?');">
+                                                <i class="fas fa-trash fa-2x justify-content-center"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tr class="bg-white">
+                                <td colspan="2"><b>Total sin IVA:</b></td>
+                                <td>{{ presupuesto_data.amount_untaxed }}€</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td colspan="2"><b>IVA:</b></td>
+                                <td>{{ presupuesto_data.amount_tax }}€</td>
+                            </tr>
+                            <tr class="bg-white">
+                                <td colspan="2"><b>Total con IVA:</b></td>
+                                <td>{{ presupuesto_data.amount_total }}€</td>
+                            </tr>
+                        </table>
+
+                        <!-- Adicionar produto ao Presupuesto -->
+
+                        <hr>
+
+                        <div class="text-center">
+                            <form method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <label for="product_code">Referencia de Producto:</label>
+                                <input type="text" class="form-control" id="product_code" name="product_code"
+                                    placeholder="Introduzca el código">
+
+                                <label for="product_qty">Cantidad:</label>
+                                <input type="number" step="1" class="form-control" id="product_qty" name="product_qty"
+                                    value="1" min="1">
+
+                                <br>
+                                <button type="submit" class="btn btn-primary btn-lg">Añadir</button>
+                                <button id="startButton" class="btn btn-warning btn-lg" type="button"
+                                    onclick="startScanning(event)">Leer QR Code</button>
+                            </form>
+                        </div>
+
+                        <div class="text-center">
+                            <hr>
+                            <form action="{{ url_for('confirm_presupuesto', presupuesto_id=presupuesto_id) }}"
+                                method="post" id="createOrderForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" class="btn btn-success btn-lg"
+                                    onclick="showConfirmOrderModal()">Confirmar Pedido</button>
+                            </form>
+                            <hr>
+                            <form action="{{ url_for('send_email_presupuesto', presupuesto_id=presupuesto_id) }}"
+                                method="post" id="sendEmailForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" class="btn btn-info btn-lg"
+                                    onclick="showConfirmEmailModal()">Enviar Email</button>
+                            </form>
+                            <hr>
+                            <button type="button" class="btn btn-secondary ml-2 btn-lg"
+                                onclick="window.location.href='/';"
+                                style="background-color:#70D44B !important;color:#003841 !important;">Nueva
+                                Consulta</button>
+                            <hr>
+                        </div>
+
+                        &nbsp;&nbsp;
+
+
+
+                    </div>
+                    <!--</div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="col-12 text-center text-white" style="color:#70D44B !important;">
+        Bader Europe Group S.L. 2025
+    </div>
+    <br>
+
+
+
+    <!-- Modal para a câmera -->
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cameraModalLabel">Leer QR Code</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Aqui será renderizado o QR scanner -->
+                    <div id="reader"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal para Confirmação de Envio de Email -->
+    <div class="modal" tabindex="-1" id="confirmEmailModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de que desea enviar el email?</p>
+                </div>
+                <div class="modal-footer">
+                    <!--<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>-->
+                    <button type="button" class="btn btn-primary" id="confirmSendEmail">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmação de Criar Pedido -->
+    <div class="modal" tabindex="-1" id="confirmOrderModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de que desea crear el pedido?</p>
+                </div>
+                <div class="modal-footer">
+                    <!--<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>-->
+                    <button type="button" class="btn btn-primary" id="confirmCreateOrder">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        function showConfirmOrderModal() {
+            $('#confirmOrderModal').modal('show');
+        }
+
+        $(document).ready(function () {
+            // Quando o usuário confirmar a criação do pedido, envia o formulário
+            $('#confirmCreateOrder').on('click', function () {
+                $('#createOrderForm').submit();
+
+
+            });
+        });
+
+        function showConfirmEmailModal() {
+            $('#confirmEmailModal').modal('show');
+        }
+
+        $(document).ready(function () {
+            // Quando o usuário confirmar o envio do email, envia o formulário
+            $('#confirmSendEmail').on('click', function () {
+                $('#sendEmailForm').submit();
+            });
+        });
+
+        function startScanning(event) {
+            event.preventDefault(); // Prevenir recarregamento da página
+
+            // Abre o modal
+            $('#cameraModal').modal('show');
+
+            // Quando o modal é realmente aberto, inicia o QR scanner
+            $('#cameraModal').on('shown.bs.modal', function () {
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            });
+
+            // Quando o modal é fechado, para o scanner
+            $('#cameraModal').on('hidden.bs.modal', function () {
+                html5QrcodeScanner.clear();
+            });
+        }
+
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Processa o texto decodificado para pegar os dados antes do '$'
+            let processedText = decodedText.split('$')[0].trim();
+
+            document.getElementById('product_code').value = processedText;
+            html5QrcodeScanner.clear(); // Parar a leitura depois de um sucesso
+
+            $('#cameraModal').modal('hide'); // Fechar o modal após a leitura bem-sucedida
+        }
+
+        function onScanFailure(error) {
+            console.error(`Erro ao ler o QR Code: ${error}`);
+        }
+
+        let html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader",
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            false
+        );
+
+    </script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap-input-spinner@3.3.3/src/bootstrap-input-spinner.min.js"></script>
+    <script>
+        $("input[type='number']").inputSpinner()
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</body>
+
+</html>

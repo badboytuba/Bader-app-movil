@@ -1,0 +1,6 @@
+flask>=2.3.0
+flask-wtf>=1.2.0
+python-dotenv>=1.0.0
+zeep>=4.2.0
+requests>=2.31.0
+markupsafe>=2.1.0

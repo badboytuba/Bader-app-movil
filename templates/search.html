@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Cliente</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://bader.es/descargas/img/icono.ico" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body style="background-color:#003841;">
+
+    <div class="container mt-5 bg-light" style="adding:10px; background-color:#003841 !important;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8 col-sm-12" style="padding-top:20px; padding-down:20px;">
+                    <div style="border: 10px solid; padding:20px; border-color: #70D44B;">
+                        <div class="card bg-light rounded-0 border-0" style="background-color:#003841 !important;">
+                            <h2 class="text-center" style="color: #70D44B;">Datos del Cliente</h2>
+                            &nbsp;&nbsp;
+                            <form action="/save" method="post" class="row g-3">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label" style="color: #70D44B;">Nombre de
+                                        Empresa</label>
+                                    <input id="name" type="text" class="form-control cajasTexto" name="name"
+                                        value="{{ data.name }}" placeholder="Nombre de la empresa" minlength="3"
+                                        required>
+
+                                    <label for="street" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">Calle</label>
+                                    <input id="street" type="text" class="form-control cajasTexto" name="street"
+                                        value="{{ data.street }}" placeholder="Calle" required>
+
+                                    <label for="city" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">Ciudad</label>
+                                    <input id="city" type="text" class="form-control cajasTexto" name="city"
+                                        value="{{ data.city }}" placeholder="Ciudad" required>
+
+                                    <label for="zip" class="form-label" style="color: #70D44B; margin-top:6px;">Código
+                                        Postal</label>
+                                    <input id="zip" type="text" class="form-control cajasTexto" name="zip"
+                                        value="{{ data.zip }}" placeholder="Código" required>
+
+                                    <label for="state" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">Província/Estado</label>
+                                    <input id="state" type="text" class="form-control cajasTexto" name="state"
+                                        value="{{ data.state }}" placeholder="Provincia" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="country" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">País</label>
+                                    <select id="country" name="country" class="form-control cajasTexto" required>
+                                        <option value="">Seleccione un país</option>
+                                        {% for country in countries %}
+                                        <option value="{{ country.name }}" {% if data.country==country.name %}selected{%
+                                            endif %}>{{ country.name }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                    <label for="phone" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">Teléfono</label>
+                                    <input id="phone" type="text" class="form-control cajasTexto" name="phone"
+                                        value="{{ data.phone }}" placeholder="Teléfono" required>
+
+                                    <label for="mobile" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">Celular/Mobile</label>
+                                    <input id="mobile" type="text" class="form-control cajasTexto" name="mobile"
+                                        value="{{ data.mobile }}" placeholder="Móvil" required>
+
+                                    <label for="email" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">Email</label>
+                                    <input id="email" type="email" class="form-control cajasTexto" name="email"
+                                        value="{{ data.email }}" placeholder="Correo Electrónico" required>
+
+                                    <label for="vat" class="form-label"
+                                        style="color: #70D44B; margin-top:6px;">NIF</label>
+                                    <input id="vat" type="text" class="form-control cajasTexto" name="vat"
+                                        value="{{ data.vat }}" placeholder="NIF">
+
+
+                                    <!-- 🔹 NOVO CAMPO ADICIONADO PARA ETIQUETAS -->
+                                    <label for="customer_tag" class="form-label" style="color: #70D44B;">Tipo de
+                                        Cliente</label>
+                                    <select id="customer_tag" name="customer_tag" class="form-control" required>
+                                        <option value="clinica_dental" {% if data.customer_tag=="clinica_dental" %}
+                                            selected {% endif %}>Clínica Dental</option>
+                                        <option value="laboratorio" {% if data.customer_tag=="laboratorio" %} selected
+                                            {% endif %}>Laboratorio</option>
+                                        <option value="estudiante" {% if data.customer_tag=="estudiante" %} selected {%
+                                            endif %}>Estudiante</option>
+                                        <option value="mayorista" {% if data.customer_tag=="mayorista" %} selected {%
+                                            endif %}>Mayorista</option>
+                                        <option value="otros" {% if data.customer_tag=="otros" %} selected {% endif %}>
+                                            Otros</option>
+                                    </select>
+                                    <!-- 🔹 FIM DO NOVO CAMPO -->
+
+                                </div>
+
+                                <div class="col-12 text-center mt-3">
+                                    <button id="btnEnviar" type="submit" class="btn btn-primary btn-lg">Guardar</button>
+                                    <hr>
+                                    <button type="button" class="btn btn-success ml-2 btn-lg"
+                                        onclick="window.location.href='/create_presupuesto?vat={{ data.vat }}';">Crear
+                                        Presupuesto</button>
+                                    <hr>
+                                    <button type="button" class="btn btn-secondary ml-2 btn-lg"
+                                        onclick="window.location.href='/';"
+                                        style="background-color:#70D44B !important;color:#003841 !important;">Nueva
+                                        Consulta</button>
+                                </div>
+                            </form>
+                            <div class="card-body">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        &nbsp;&nbsp;
+
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="col-12 text-center text-white" style="color:#70D44B !important;">
+        Bader Europe Group S.L. 2025
+    </div>
+    <br>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+
+</html>
