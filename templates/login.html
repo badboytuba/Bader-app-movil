@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mobil Feira</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://bader.es/descargas/img/icono.ico" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="background-color:#003841;">
+
+    <div class="col-12">
+        <img src="https://bader.es/descargas/img/bader_logotipo_verde_claro_rgb.png" class="img-fluid" alt="logo Bader">
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 col-sm-12">
+                <div style="border: 10px solid; padding:20px; border-color: #70D44B">
+                    <div class="card bg-light rounded-0 border-0" style="background-color:#003841 !important;">
+                        <h2 class="text-center" style="color: #70D44B;">Iniciar Sesión</h2>
+                        &nbsp;&nbsp;
+
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form action="/login" method="post" class="row g-3 form-horizontal text-secondary">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="col-12">
+                                <label for="username" class="form-label" style="color: #70D44B;">Usuario</label>
+                                <input type="text" class="form-control" name="username" id="username" placeholder="Usuario" required autofocus>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <label for="password" class="form-label" style="color: #70D44B;">Contraseña</label>
+                                <input type="password" class="form-control" name="password" id="password" placeholder="Contraseña" required>
+                            </div>
+                            <div class="col-12 text-center mt-3">
+                                <button type="submit" class="btn btn-primary btn-lg" style="border-color: #70D44B !important; background-color:#70D44B !important; color:#003841 !important; font-weight: bold;">Entrar</button>
+                            </div>
+                        </form>
+                        <div class="card-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    &nbsp;&nbsp;
+
+    <div class="col-12 text-center text-white" style="color:#70D44B !important;">
+        Bader Europe Group S.L. 2025
+    </div>
+    <br>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    {% include '_loading.html' %}
+</body>
+</html>

@@ -7,155 +7,307 @@
     <title>Detalles del Presupuesto</title>
     <link rel="shortcut icon" type="image/x-icon" href="https://bader.es/descargas/img/icono.ico" />
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .action-btn {
+            min-width: 240px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 12px 24px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-section {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 16px;
+        }
+
+        .btn-nueva {
+            background-color: #70D44B;
+            color: #003841;
+            border: none;
+        }
+
+        .btn-nueva:hover {
+            background-color: #5ec03a;
+            color: #003841;
+        }
+
+        .warehouse-option {
+            flex: 1;
+            max-width: 160px;
+            text-align: center;
+            padding: 16px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: #fff;
+        }
+
+        .warehouse-option:hover {
+            border-color: #70D44B;
+            box-shadow: 0 2px 8px rgba(112, 212, 75, 0.15);
+        }
+
+        .warehouse-option.selected {
+            border-color: #70D44B;
+            background: linear-gradient(135deg, #f0fbe8, #e6f9d8);
+            box-shadow: 0 2px 12px rgba(112, 212, 75, 0.25);
+        }
+
+        .warehouse-option.selected i {
+            color: #70D44B;
+        }
+
+        .warehouse-option i {
+            font-size: 1.8rem;
+            color: #999;
+            margin-bottom: 6px;
+            transition: color 0.25s;
+        }
+
+        .warehouse-option .wh-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #003841;
+        }
+
+        .warehouse-option .wh-id {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        #iva-row {
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+
+        #iva-row:hover {
+            background-color: #f0f0f0;
+        }
+
+        #iva-row.iva-disabled {
+            background-color: #ffe5e5;
+        }
+
+        #iva-row.iva-disabled #amount_tax {
+            text-decoration: line-through;
+            color: #dc3545;
+        }
+
+        .product-row:hover {
+            background-color: #e9f7e1 !important;
+        }
+    </style>
 </head>
 
 <body style="background-color:#003841;">
 
-    <div class="container mt-5 bg-light" style="padding:10px;">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div style="position:fixed;top:16px;right:16px;z-index:9999;max-width:380px;">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'warning' if category == 'warning' else 'danger' }} alert-dismissible fade show"
+            style="font-size:0.85rem;border-radius:10px;">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-5 col-md-8 col-sm-12" style="padding-top:20px; padding-down:20px;">
-                    <!--<div style="border: 10px solid; padding:20px; border-color: #B9BE10">-->
-                    <div class="card bg-light rounded-0 border-0">
+    <div class="container mt-4 mb-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-8 col-sm-12">
 
-                        <h2>Presupuesto</h2>
-                        &nbsp;
-                        <div class="text-white text-center" style="background-color:#CAC7C6;padding:10px">
-                            <!--<ul>-->
-                            <h3>{{ presupuesto_data.partner_id[1] }}</h3>
-                            <!--<li>Nome do Cliente: {{ presupuesto_data.partner_id[1] }}</li>-->
-                            <br>
-                            <h4
-                                style="color: {{ '#28A745' if presupuesto_data.fiscal_position_id[0] == 4 else '#CD2400' }};">
-                                {{ presupuesto_data.name }}
-
-                            </h4>
-                            <!--</ul>-->
-                        </div>
-                        &nbsp;
-                        <h3>Productos Añadidos:</h3>
-                        &nbsp;
-                        <table class="table table-borderless">
-                            <thead>
-                                <tr class="bg-white">
-                                    <th>Producto</th>
-                                    <th>Qts</th>
-                                    <th>Total</th>
-                                    <th>Acción</th> <!-- Nova coluna de ações -->
-
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for line in sale_order_lines %}
-                                <tr>
-                                    <td>{{ line.name }}</td>
-                                    <td>{{ line.product_uom_qty }}</td>
-                                    <td>{{ line.price_total }}€</td>
-                                    <td style="text-align: center;">
-                                        <form method="POST" action="{{ url_for('delete_product', line_id=line.id) }}"
-                                            style="display:inline;">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-link text-danger p-0"
-                                                onclick="return confirm('¿Eliminar este producto?');">
-                                                <i class="fas fa-trash fa-2x justify-content-center"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                            <tr class="bg-white">
-                                <td colspan="2"><b>Total sin IVA:</b></td>
-                                <td>{{ presupuesto_data.amount_untaxed }}€</td>
-                            </tr>
-                            <tr class="bg-white">
-                                <td colspan="2"><b>IVA:</b></td>
-                                <td>{{ presupuesto_data.amount_tax }}€</td>
-                            </tr>
-                            <tr class="bg-white">
-                                <td colspan="2"><b>Total con IVA:</b></td>
-                                <td>{{ presupuesto_data.amount_total }}€</td>
-                            </tr>
-                        </table>
-
-                        <!-- Adicionar produto ao Presupuesto -->
-
-                        <hr>
-
-                        <div class="text-center">
-                            <form method="post">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <label for="product_code">Referencia de Producto:</label>
-                                <input type="text" class="form-control" id="product_code" name="product_code"
-                                    placeholder="Introduzca el código">
-
-                                <label for="product_qty">Cantidad:</label>
-                                <input type="number" step="1" class="form-control" id="product_qty" name="product_qty"
-                                    value="1" min="1">
-
-                                <br>
-                                <button type="submit" class="btn btn-primary btn-lg">Añadir</button>
-                                <button id="startButton" class="btn btn-warning btn-lg" type="button"
-                                    onclick="startScanning(event)">Leer QR Code</button>
-                            </form>
-                        </div>
-
-                        <div class="text-center">
-                            <hr>
-                            <form action="{{ url_for('confirm_presupuesto', presupuesto_id=presupuesto_id) }}"
-                                method="post" id="createOrderForm">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="button" class="btn btn-success btn-lg"
-                                    onclick="showConfirmOrderModal()">Confirmar Pedido</button>
-                            </form>
-                            <hr>
-                            <form action="{{ url_for('send_email_presupuesto', presupuesto_id=presupuesto_id) }}"
-                                method="post" id="sendEmailForm">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="button" class="btn btn-info btn-lg"
-                                    onclick="showConfirmEmailModal()">Enviar Email</button>
-                            </form>
-                            <hr>
-                            <button type="button" class="btn btn-secondary ml-2 btn-lg"
-                                onclick="window.location.href='/';"
-                                style="background-color:#70D44B !important;color:#003841 !important;">Nueva
-                                Consulta</button>
-                            <hr>
-                        </div>
-
-                        &nbsp;&nbsp;
-
-
-
+                <!-- Header -->
+                <div class="card card-section bg-light p-3 mb-3">
+                    <h2 class="text-center mb-3">Presupuesto</h2>
+                    <div class="text-white text-center py-3 px-2" style="background-color:#CAC7C6; border-radius:8px;">
+                        <h3 class="mb-2">{{ presupuesto_data.partner_id[1] }}</h3>
+                        <h4
+                            style="color: {{ '#28A745' if presupuesto_data.fiscal_position_id[0] == 4 else '#CD2400' }};">
+                            {{ presupuesto_data.name }}
+                        </h4>
                     </div>
-                    <!--</div>-->
                 </div>
+
+                <!-- Productos -->
+                <div class="card card-section bg-light p-3 mb-3">
+                    <h4 class="mb-3"><i class="fas fa-box-open"></i> Productos Añadidos</h4>
+                    <table class="table table-borderless mb-0">
+                        <thead>
+                            <tr class="bg-white">
+                                <th>Producto</th>
+                                <th>Qts</th>
+                                <th>Total</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for line in sale_order_lines %}
+                            <tr class="product-row" style="cursor: pointer;" data-line-id="{{ line.id }}"
+                                data-name="{{ line.product_id[1] }}" data-qty="{{ line.product_uom_qty }}"
+                                data-price="{{ line.price_unit }}" onclick="editProduct(this)">
+                                <td style="font-size: 0.85rem;">{{ line.product_id[1] }}</td>
+                                <td>{{ line.product_uom_qty|int }}</td>
+                                <td>{{ line.price_subtotal|eur }}€</td>
+                                <td style="text-align: center;" onclick="event.stopPropagation();">
+                                    <form method="POST" action="{{ url_for('delete_product', line_id=line.id) }}"
+                                        style="display:inline;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-link text-danger p-0"
+                                            onclick="return confirm('¿Eliminar este producto?');">
+                                            <i class="fas fa-trash fa-lg"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <table class="table table-sm mb-0 mt-2" style="border-top: 2px solid #dee2e6;">
+                        <tr>
+                            <td class="font-weight-bold">Total sin IVA:</td>
+                            <td class="text-right" id="amount_untaxed">{{ presupuesto_data.amount_untaxed|eur }}€</td>
+                        </tr>
+                        <tr id="iva-row" onclick="toggleIVA()"
+                            style="cursor: pointer; transition: all 0.3s ease; border-radius: 6px;"
+                            title="Clic para activar/desactivar IVA"
+                            class="{{ 'iva-disabled' if presupuesto_data.fiscal_position_id[0] == 4 else '' }}">
+                            <td class="font-weight-bold">
+                                <i class="fas fa-toggle-{{ 'off text-danger' if presupuesto_data.fiscal_position_id[0] == 4 else 'on text-success' }}"
+                                    id="iva-icon"></i>
+                                <span id="iva-label">IVA{{ ' (exento)' if presupuesto_data.fiscal_position_id[0] == 4
+                                    else '' }}:</span>
+                            </td>
+                            <td class="text-right" id="amount_tax">{{ presupuesto_data.amount_tax|eur }}€</td>
+                        </tr>
+                        <tr style="font-size: 1.15rem;">
+                            <td class="font-weight-bold">Total con IVA:</td>
+                            <td class="text-right font-weight-bold" id="amount_total">{{
+                                presupuesto_data.amount_total|eur }}€</td>
+                        </tr>
+                    </table>
+                </div>
+
+
+                <!-- Añadir Producto -->
+                <div class="card card-section bg-light p-3 mb-3">
+                    <h5 class="text-center mb-3"><i class="fas fa-plus-circle"></i> Añadir Producto</h5>
+                    <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-group mb-2">
+                            <label for="product_code"><i class="fas fa-barcode"></i> Referencia:</label>
+                            <input type="text" class="form-control" id="product_code" name="product_code"
+                                placeholder="Introduzca el código">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="product_qty"><i class="fas fa-sort-numeric-up"></i> Cantidad:</label>
+                            <input type="number" step="1" class="form-control" id="product_qty" name="product_qty"
+                                value="1" min="1">
+                        </div>
+                        <div class="d-flex justify-content-center flex-wrap" style="gap: 10px;">
+                            <button type="submit" class="btn btn-primary btn-lg flex-fill"
+                                style="border-radius:8px;font-weight:600;">
+                                <i class="fas fa-plus"></i> Añadir
+                            </button>
+                            <button id="startButton" class="btn btn-warning btn-lg flex-fill" type="button"
+                                onclick="startScanning(event)" style="border-radius:8px;font-weight:600;">
+                                <i class="fas fa-qrcode"></i> Leer QR
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Almacén -->
+                <div class="card card-section bg-light p-3 mb-3">
+                    <h5 class="text-center mb-3"><i class="fas fa-warehouse"></i> Almacén</h5>
+                    <div class="d-flex justify-content-center" style="gap: 12px;">
+                        <div class="warehouse-option selected" data-id="1" onclick="selectWarehouse(this)">
+                            <i class="fas fa-building"></i>
+                            <div class="wh-name">Bader</div>
+                            <div class="wh-id">Almacén principal</div>
+                        </div>
+                        <div class="warehouse-option" data-id="19" onclick="selectWarehouse(this)">
+                            <i class="fas fa-store"></i>
+                            <div class="wh-name">Feira</div>
+                            <div class="wh-id">Almacén feria</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected_warehouse_id" value="1">
+                    <div id="wh-status" class="text-center mt-2" style="font-size:0.8rem; color:#888;"></div>
+                </div>
+
+                <!-- Acciones -->
+                <div class="card card-section bg-light p-3 mb-3">
+                    <h5 class="text-center mb-3"><i class="fas fa-tasks"></i> Acciones</h5>
+                    <div class="d-flex flex-column align-items-center" style="gap: 12px;">
+
+                        <form action="{{ url_for('confirm_presupuesto', presupuesto_id=presupuesto_id) }}" method="post"
+                            id="createOrderForm" class="w-100 text-center">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="warehouse_id" id="form_warehouse_id" value="1">
+                            <button type="button" class="btn btn-success action-btn" onclick="showConfirmOrderModal()">
+                                <i class="fas fa-check-circle"></i> Confirmar Pedido
+                            </button>
+                        </form>
+
+                        <form action="{{ url_for('send_email_presupuesto', presupuesto_id=presupuesto_id) }}"
+                            method="post" id="sendEmailForm" class="w-100 text-center">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="button" class="btn btn-info text-white action-btn"
+                                onclick="showConfirmEmailModal()">
+                                <i class="fas fa-envelope"></i> Enviar Email
+                            </button>
+                        </form>
+
+                        <button type="button" class="btn btn-danger action-btn" onclick="showCancelModal()">
+                            <i class="fas fa-times-circle"></i> Cancelar Presupuesto
+                        </button>
+
+                        <hr class="w-100 my-1">
+
+                        <button type="button" class="btn btn-nueva action-btn" onclick="window.location.href='/';">
+                            <i class="fas fa-search"></i> Nueva Consulta
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    &nbsp;&nbsp;
-
-    <div class="col-12 text-center text-white" style="color:#70D44B !important;">
-        Bader Europe Group S.L. 2025
+    <div class="text-center py-2" style="color:#70D44B;">
+        Bader Europe Group S.L. 2026
     </div>
-    <br>
 
+    <!-- ============================================ -->
+    <!-- MODALS -->
+    <!-- ============================================ -->
 
-
-    <!-- Modal para a câmera -->
-    <div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+    <!-- Modal: Cámara QR -->
+    <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="cameraModalLabel">Leer QR Code</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title"><i class="fas fa-qrcode"></i> Leer QR Code</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Aqui será renderizado o QR scanner -->
                     <div id="reader"></div>
                 </div>
                 <div class="modal-footer">
@@ -164,101 +316,278 @@
             </div>
         </div>
     </div>
-    <!-- Modal para Confirmação de Envio de Email -->
-    <div class="modal" tabindex="-1" id="confirmEmailModal">
-        <div class="modal-dialog">
+
+    <!-- Modal: Confirmar Pedido -->
+    <div class="modal fade" tabindex="-1" id="confirmOrderModal">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fas fa-check-circle"></i> Confirmar Pedido</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Está seguro de que desea enviar el email?</p>
+                    <p>¿Está seguro de que desea transformar este presupuesto en pedido?</p>
                 </div>
                 <div class="modal-footer">
-                    <!--<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>-->
-                    <button type="button" class="btn btn-primary" id="confirmSendEmail">Confirmar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Volver</button>
+                    <button type="button" class="btn btn-success" id="confirmCreateOrder">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal para Confirmação de Criar Pedido -->
-    <div class="modal" tabindex="-1" id="confirmOrderModal">
-        <div class="modal-dialog">
+    <!-- Modal: Confirmar Email -->
+    <div class="modal fade" tabindex="-1" id="confirmEmailModal">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="fas fa-envelope"></i> Enviar Email</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Está seguro de que desea crear el pedido?</p>
+                    <p>¿Está seguro de que desea enviar el email del presupuesto?</p>
                 </div>
                 <div class="modal-footer">
-                    <!--<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>-->
-                    <button type="button" class="btn btn-primary" id="confirmCreateOrder">Confirmar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info text-white" id="confirmSendEmail">
+                        <i class="fas fa-paper-plane"></i> Enviar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal: Cancelar Presupuesto (con notas) -->
+    <div class="modal fade" tabindex="-1" id="cancelModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Cancelar Presupuesto</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <form action="{{ url_for('cancel_presupuesto', presupuesto_id=presupuesto_id) }}" method="post"
+                    id="cancelForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body">
+                        <p class="text-danger font-weight-bold">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            ¿Está seguro de que desea cancelar este presupuesto?
+                        </p>
+                        <div class="form-group">
+                            <label for="cancel_note"><i class="fas fa-sticky-note"></i> Motivo de la
+                                cancelación:</label>
+                            <textarea class="form-control" id="cancel_note" name="cancel_note" rows="4"
+                                placeholder="Escriba el motivo de la cancelación..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Volver</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt"></i> Confirmar Cancelación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal: Editar Producto -->
+    <div class="modal fade" tabindex="-1" id="editProductModal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: #003841; color: white;">
+                    <h5 class="modal-title"><i class="fas fa-edit"></i> Editar Producto</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_line_id">
+                    <div class="form-group">
+                        <label class="font-weight-bold"><i class="fas fa-box"></i> Producto:</label>
+                        <p id="edit_product_name" class="form-control-plaintext"
+                            style="font-size: 1rem; color: #003841;"></p>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_qty" class="font-weight-bold"><i class="fas fa-sort-numeric-up"></i>
+                            Cantidad:</label>
+                        <input type="number" class="form-control" id="edit_qty" min="1" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_price" class="font-weight-bold"><i class="fas fa-euro-sign"></i> Precio
+                            unitario (sin IVA):</label>
+                        <input type="number" class="form-control" id="edit_price" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn text-white" style="background-color: #003841;"
+                        onclick="saveProductEdit()">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- ============================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================ -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
-        function showConfirmOrderModal() {
-            $('#confirmOrderModal').modal('show');
-        }
+        // Auto-hide flash messages
+        setTimeout(function () { document.querySelectorAll('.alert').forEach(function (el) { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; setTimeout(function () { el.remove() }, 500) }) }, 4000);
+        // Modal handlers
+        function showConfirmOrderModal() { $('#confirmOrderModal').modal('show'); }
+        function showConfirmEmailModal() { $('#confirmEmailModal').modal('show'); }
+        function showCancelModal() { $('#cancelModal').modal('show'); }
 
         $(document).ready(function () {
-            // Quando o usuário confirmar a criação do pedido, envia o formulário
             $('#confirmCreateOrder').on('click', function () {
                 $('#createOrderForm').submit();
-
-
             });
-        });
-
-        function showConfirmEmailModal() {
-            $('#confirmEmailModal').modal('show');
-        }
-
-        $(document).ready(function () {
-            // Quando o usuário confirmar o envio do email, envia o formulário
             $('#confirmSendEmail').on('click', function () {
                 $('#sendEmailForm').submit();
             });
         });
 
+        // Warehouse selection — atualiza em tempo real no Odoo
+        function selectWarehouse(el) {
+            document.querySelectorAll('.warehouse-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            var whId = el.getAttribute('data-id');
+            var whName = el.querySelector('.wh-name').textContent;
+            document.getElementById('selected_warehouse_id').value = whId;
+            document.getElementById('form_warehouse_id').value = whId;
+
+            // Feedback visual
+            var statusEl = document.getElementById('wh-status');
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Actualizando almacén...';
+            statusEl.style.color = '#888';
+
+            // AJAX para atualizar no Odoo em tempo real
+            $.ajax({
+                url: '/update_warehouse/{{ presupuesto_id }}',
+                method: 'POST',
+                data: { warehouse_id: whId, csrf_token: '{{ csrf_token() }}' },
+                success: function (resp) {
+                    statusEl.innerHTML = '<i class="fas fa-check-circle" style="color:#70D44B;"></i> Almacén <b>' + whName + '</b> actualizado';
+                    statusEl.style.color = '#70D44B';
+                    setTimeout(function () { statusEl.innerHTML = ''; }, 3000);
+                },
+                error: function () {
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#dc3545;"></i> Error al actualizar';
+                    statusEl.style.color = '#dc3545';
+                }
+            });
+        }
+
+        // Format number to European style (12.014,03)
+        function formatEur(num) {
+            var formatted = parseFloat(num).toFixed(2);
+            var parts = formatted.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return parts.join(',') + '€';
+        }
+
+        // IVA Toggle
+        function toggleIVA() {
+            var row = document.getElementById('iva-row');
+            var icon = document.getElementById('iva-icon');
+            var label = document.getElementById('iva-label');
+
+            // Feedback visual imediato
+            icon.className = 'fas fa-spinner fa-spin';
+            label.textContent = 'Actualizando...';
+
+            $.ajax({
+                url: '/toggle_iva/{{ presupuesto_id }}',
+                method: 'POST',
+                data: { csrf_token: '{{ csrf_token() }}' },
+                success: function (resp) {
+                    // Atualizar totais
+                    document.getElementById('amount_untaxed').textContent = formatEur(resp.amount_untaxed);
+                    document.getElementById('amount_tax').textContent = formatEur(resp.amount_tax);
+                    document.getElementById('amount_total').textContent = formatEur(resp.amount_total);
+
+                    if (resp.iva_active) {
+                        row.classList.remove('iva-disabled');
+                        icon.className = 'fas fa-toggle-on text-success';
+                        label.textContent = 'IVA:';
+                    } else {
+                        row.classList.add('iva-disabled');
+                        icon.className = 'fas fa-toggle-off text-danger';
+                        label.textContent = 'IVA (exento):';
+                    }
+                },
+                error: function () {
+                    icon.className = 'fas fa-exclamation-triangle text-danger';
+                    label.textContent = 'Error al cambiar IVA';
+                    setTimeout(function () {
+                        icon.className = row.classList.contains('iva-disabled') ? 'fas fa-toggle-off text-danger' : 'fas fa-toggle-on text-success';
+                        label.textContent = row.classList.contains('iva-disabled') ? 'IVA (exento):' : 'IVA:';
+                    }, 2000);
+                }
+            });
+        }
+
+        // Edit Product
+        function editProduct(el) {
+            var lineId = el.getAttribute('data-line-id');
+            var name = el.getAttribute('data-name');
+            var qty = el.getAttribute('data-qty');
+            var price = el.getAttribute('data-price');
+
+            document.getElementById('edit_line_id').value = lineId;
+            document.getElementById('edit_product_name').textContent = name;
+            document.getElementById('edit_qty').value = Math.round(parseFloat(qty));
+            document.getElementById('edit_price').value = parseFloat(price).toFixed(2);
+            $('#editProductModal').modal('show');
+        }
+
+        function saveProductEdit() {
+            var lineId = document.getElementById('edit_line_id').value;
+            var qty = document.getElementById('edit_qty').value;
+            var price = document.getElementById('edit_price').value;
+
+            $.ajax({
+                url: '/update_product_line/' + lineId,
+                method: 'POST',
+                data: {
+                    qty: qty,
+                    price: price,
+                    csrf_token: '{{ csrf_token() }}'
+                },
+                success: function (resp) {
+                    $('#editProductModal').modal('hide');
+                    location.reload();
+                },
+                error: function () {
+                    alert('Error al actualizar el producto.');
+                }
+            });
+        }
+
+        // QR Scanner
         function startScanning(event) {
-            event.preventDefault(); // Prevenir recarregamento da página
-
-            // Abre o modal
+            event.preventDefault();
             $('#cameraModal').modal('show');
-
-            // Quando o modal é realmente aberto, inicia o QR scanner
             $('#cameraModal').on('shown.bs.modal', function () {
                 html5QrcodeScanner.render(onScanSuccess, onScanFailure);
             });
-
-            // Quando o modal é fechado, para o scanner
             $('#cameraModal').on('hidden.bs.modal', function () {
                 html5QrcodeScanner.clear();
             });
         }
 
-
-        function onScanSuccess(decodedText, decodedResult) {
-            // Processa o texto decodificado para pegar os dados antes do '$'
+        function onScanSuccess(decodedText) {
             let processedText = decodedText.split('$')[0].trim();
-
             document.getElementById('product_code').value = processedText;
-            html5QrcodeScanner.clear(); // Parar a leitura depois de um sucesso
-
-            $('#cameraModal').modal('hide'); // Fechar o modal após a leitura bem-sucedida
+            html5QrcodeScanner.clear();
+            $('#cameraModal').modal('hide');
         }
 
         function onScanFailure(error) {
@@ -266,18 +595,13 @@
         }
 
         let html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader",
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            false
+            "reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false
         );
-
     </script>
     <script
         src="https://cdn.jsdelivr.net/npm/bootstrap-input-spinner@3.3.3/src/bootstrap-input-spinner.min.js"></script>
-    <script>
-        $("input[type='number']").inputSpinner()
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script>$("input[type='number']").inputSpinner()</script>
+    {% include '_loading.html' %}
 </body>
 
 </html>
