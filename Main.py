@@ -806,10 +806,17 @@ def save():
                 return redirect(url_for('create_presupuesto', vat=vat))
             else:
                 flash('Error al crear el cliente.', 'error')
+                return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Erro ao criar cliente no Odoo: {e}")
             flash(f'Error al crear el cliente: {str(e)}', 'error')
+            return redirect(url_for('index'))
 
+    # Existing client was updated — verify session has correct partner_id
+    if not session.get('partner_id'):
+        logger.error("BUG PREVENTION: No partner_id in session after save!")
+        flash('Error: No se pudo identificar el cliente. Busque de nuevo.', 'error')
+        return redirect(url_for('index'))
     return redirect(url_for('create_presupuesto', vat=vat))
 
 
