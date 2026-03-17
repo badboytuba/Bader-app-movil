@@ -378,10 +378,21 @@
                             <button id="btnEnviar" type="submit" class="btn btn-save">
                                 <i class="bi bi-check-circle me-1"></i> Guardar Cliente
                             </button>
-                            <button type="button" class="btn btn-presupuesto"
+                            {% if is_existing_client %}
+                            <button id="btnPresupuesto" type="button" class="btn btn-presupuesto"
                                 onclick="window.location.href='/create_presupuesto?vat={{ data.vat }}';">
                                 <i class="bi bi-receipt me-1"></i> Crear Presupuesto
                             </button>
+                            {% else %}
+                            <button id="btnPresupuesto" type="button" class="btn btn-presupuesto" disabled
+                                style="opacity:0.4;cursor:not-allowed;"
+                                title="Primero debe guardar el cliente">
+                                <i class="bi bi-receipt me-1"></i> Crear Presupuesto
+                            </button>
+                            <small style="color:rgba(255,200,50,0.8);font-size:0.75rem;">
+                                <i class="bi bi-info-circle"></i> Cliente nuevo — guarde primero para crear presupuesto
+                            </small>
+                            {% endif %}
                             <button type="button" class="btn btn-nueva" onclick="window.location.href='/';">
                                 <i class="bi bi-arrow-left me-1"></i> Nueva Consulta
                             </button>
@@ -404,6 +415,70 @@
                 setTimeout(() => el.remove(), 500);
             });
         }, 5000);
+
+        // ========================================
+        // Smart Crear Presupuesto button logic
+        // ========================================
+        // If client exists and data is modified → disable button until Guardar
+        {% if is_existing_client %}
+        (function() {
+            const btn = document.getElementById('btnPresupuesto');
+            if (!btn) return;
+
+            // Store original values of all form fields
+            const form = document.querySelector('form[action="/save"]');
+            const inputs = form.querySelectorAll('input, select');
+            const originalValues = {};
+            inputs.forEach(el => {
+                if (el.name && el.name !== 'csrf_token') {
+                    originalValues[el.name] = el.value;
+                }
+            });
+
+            function checkChanges() {
+                let hasChanges = false;
+                inputs.forEach(el => {
+                    if (el.name && el.name !== 'csrf_token') {
+                        if (el.value !== originalValues[el.name]) {
+                            hasChanges = true;
+                        }
+                    }
+                });
+
+                if (hasChanges) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.4';
+                    btn.style.cursor = 'not-allowed';
+                    btn.title = 'Datos modificados — guarde primero';
+                    btn.onclick = null;
+                    // Show warning if not already shown
+                    if (!document.getElementById('changeWarning')) {
+                        const warning = document.createElement('small');
+                        warning.id = 'changeWarning';
+                        warning.style.cssText = 'color:rgba(255,200,50,0.8);font-size:0.75rem;';
+                        warning.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Datos modificados — guarde primero para crear presupuesto';
+                        btn.parentNode.insertBefore(warning, btn.nextSibling);
+                    }
+                } else {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                    btn.title = '';
+                    btn.onclick = function() {
+                        window.location.href = '/create_presupuesto?vat={{ data.vat }}';
+                    };
+                    const warning = document.getElementById('changeWarning');
+                    if (warning) warning.remove();
+                }
+            }
+
+            // Listen for changes on all form fields
+            inputs.forEach(el => {
+                el.addEventListener('input', checkChanges);
+                el.addEventListener('change', checkChanges);
+            });
+        })();
+        {% endif %}
     </script>
     {% include '_loading.html' %}
 </body>

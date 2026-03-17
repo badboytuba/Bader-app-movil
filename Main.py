@@ -482,7 +482,8 @@ def search():
     priority_order = {code: i for i, code in enumerate(priority_codes)}
     priority_countries.sort(key=lambda c: priority_order.get(c.get('code'), 99))
 
-    return render_template('search.html', data=partner_data, priority_countries=priority_countries, other_countries=other_countries)
+    is_existing_client = bool(partner_ids)
+    return render_template('search.html', data=partner_data, priority_countries=priority_countries, other_countries=other_countries, is_existing_client=is_existing_client)
 
 
 @app.route('/save', methods=['POST'])
